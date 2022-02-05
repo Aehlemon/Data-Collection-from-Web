@@ -1,0 +1,36 @@
+# 선행 작업: pip install beautifulsoup4
+
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://comic.naver.com/webtoon/list?titleId=651673"
+res = requests.get(url)
+res.raise_for_status()
+
+# 네이버 웹툰 전체 목록 가져오기
+soup = BeautifulSoup(res.text, "lxml")
+cartoons = soup.find_all("td", attrs={"class":"title"})
+# title = cartoons[0].a.get_text()
+# link = cartoons[0].a["href"]
+# print(title)
+# print("https://comic.naver.com" + link)
+
+# 테스트 코드
+# for cartoon in cartoons:
+#     title = cartoon.a.get_text()
+#     link = "https://comic.naver.com" + cartoon.a["href"]
+#     list = [str(title) + ": " + str(link)]
+#     print(list)
+
+# '유미의 세포' 만화 목록 파일 만들기
+url_list = open("yumicellcartoonlist.txt","w", encoding = "utf8") # "w": 쓰기 목적으로 write / utf 파일 정의해야지 한글로 출력
+for cartoon in cartoons:
+    url = "https://comic.naver.com/webtoon/list?titleId=651673"
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, "lxml")
+    cartoons = soup.find_all("td", attrs={"class":"title"})
+    title = cartoon.a.get_text()
+    link = "https://comic.naver.com" + cartoon.a["href"]
+    list = str(title) + ": " + str(link)
+    print(list, file = url_list)
+url_list.close()
