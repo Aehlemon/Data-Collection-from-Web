@@ -1,0 +1,147 @@
+# 크롬 웹드라이버랑, win32 pyperclip 미리 설치해줄 것
+# 모듈 파일과 구동 파일 2가지 작성하여 cmd 창에서 실행
+
+# "파이썬 실습용"으로 공유하는 코드이니 트래픽에 과부하되는 작업으로 변경 및 악용하지 말아주세요.
+
+------------------------------------모듈--------------------------------------------
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+import time
+
+
+class LikeBot:
+    def __init__(self):
+        # 크롬 옵션 설정(해상도)
+        self.options = Options()
+        self.options.add_argument("--window-size=1920, 1080")
+        
+        # 웹드라이버 경로 넣어서 구동시키기
+        self.driver = webdriver.Chrome(
+            executable_path = "C:/Users/silan/Python/chromedriver.exe", 
+            chrome_options=self.options)
+            
+        # 요청할 페이지 태그 주소 고정
+        self.query = "https://www.instagram.com/explore/tags/"
+    
+    # 로그인 하기
+    def login(self, id, ps):
+        # 로그인 페이지로 이동
+        self.driver.get("https://www.instagram.com/accounts/login/")
+        
+        # 대기시간 주기
+        time.sleep(5)
+        
+        # 웹드라이브 키 값으로 input 태그 위치 찾기 및 변수 지정
+        input_field = self.driver.find_elements_by_tag_name("input")
+        
+        # id, ps 값 넣기
+        input_field[0].send_keys(id)
+        input_field[1].send_keys(ps)
+        
+        # 비밀번호 입력 후 엔터키 누르기
+        input_field[1].send_keys(Keys.RETURN)
+          
+        # 대기 시간 주기
+        time.sleep(5)
+    
+    # 태그 검색하여 좋아요 누를 게시글 경로 찾기
+    def search_tag(self, tag):
+        
+        # 웹 브라우져로 태그 검색 완료된 페이지로 전환
+        self.driver.get(self.query + tag)
+        
+        # 대기 시간 주기
+        time.sleep(3)
+
+    # 최근 게시물 첫 번째 사진을 선택하여 클릭하는 메서드
+    def select_picture(self):
+        
+        # 최근 게시물의 위치를 recent_picture_xpath에 지정
+        recent_picture_xpath = '//*[@id="react-root"]/section/main/article/div[2]/div/div[1]/div[1]'
+        
+        # recent_picture_xpath의 요소를 가져와서 저장
+        recent_picture = self.driver.find_element_by_xpath(recent_picture_xpath)
+        
+        # 최근 게시물 클릭
+        recent_picture.click()
+        
+        # 다음 동작을 위해 딜레이 시간 부여
+        time.sleep(5)
+    
+    def swap(self, num):
+        count = num
+
+        # 카운트가 0이 될 때까지 계속 반복
+        while count != 0:            
+            # 카운트는 1씩 차감
+            count -= 1
+
+            # 좋아요 버튼 누르기
+            like_button_xpath = '/html/body/div[6]/div[3]/div/article/div/div[2]/div/div/div[2]/section[1]/span[1]'
+            like_button = self.driver.find_element_by_xpath(like_button_xpath)
+            like_button.click()
+            time.sleep(5)
+
+            # 다음 게시물로 넘어감
+            next_button = '/html/body/div[6]/div[2]/div/div[2]/button'            
+            next_button_element = self.driver.find_element_by_xpath(next_button)
+            next_button_element.click()
+                
+            # 다음 동작을 위해 딜레이 시간 부여
+            time.sleep(5)
+
+    # 프로그램 종료
+    def kill(self):
+        self.webdriver.quit()
+    
+    # 입력인자 하나로 모은 메소드
+    def instalike_macro(self, tag, num):
+    
+        # 태그 검색
+        self.search_tag(tag)
+
+        # 사진 첫 장을 선택하고
+        self.select_picture()
+        
+        # 사진을 좋아요하고 다음 게시물로
+        self.swap(num)
+        
+        
+--------------------------------------구동 파일--------------------------------------------        
+
+# 인자를 받기 위해 sys 모듈 import
+# 디렉토리를 만들기 위해 os 모듈 import
+# insta_like 모듈 (.py 파일 명 기억) import
+
+import sys
+import os
+import insta_likebot as lb
+
+# 아이디를 입력
+id = sys.argv[1]
+
+# 패스워드를 입력
+ps = sys.argv[2]
+
+# 태그 입력
+tag = sys.argv[3]
+   
+# 반복할 횟수 입력
+NUMBER = int(sys.argv[4].strip())
+
+# 크롤러 호출
+BOT = lb.LikeBot()
+
+# 인스타에 로그인
+BOT.login(id, ps)
+
+# 메인 메소드 사용
+BOT.instalike_macro(tag, NUMBER)
+
+# 작업 완료 후 크롤러 종료
+BOT.kill()
+
+
+
